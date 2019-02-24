@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} edit ddl {% endblock %}
+{% block content %}
+<div class="row">
+                    <div class="form-horizontal col-md-offset-2">
+                        <div class="col-md-10">
+                        <div class="card">
+                            <div class="header">编辑事件</div>
+                            <div class="content">
+                                <form class="form-horizontal" action="/edit" method="post">
+                                    {{ form.csrf_token }}
+                                    <div class="form-group">
+                                        <label class="col-md-3 control-label">事件名称</label>
+                                        <div class="col-md-4">
+                                            <input type="text" placeholder="" class="form-control" name="name" {% if task.nname != None %}value="{{ task.nname }}"{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 control-label">开始时间</label>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control datetimepicker" placeholder="start time" name="start" value={{ task.starttime }}/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-md-3 control-label">截止时间</label>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control datetimepicker" placeholder="end time" name="end" value="{{ task.ddltime }}"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-md-3 control-label">提醒类型</label>
+                                        <div class="col-md-4">
+                                            <select id="lx" class="selectpicker" data-title="选择提醒类型" data-style="btn-default btn-block" data-menu-style="dropdown-blue" onchange="gradeChange()" name="typea">
+
+                                                <option value="1" name="1" {% if task.type == '考试' %}selected="selected"{% endif %}>考试（提前一小时通知）</option>
+                                                <option value="2" name="2" {% if task.type == '作业' %}selected="selected"{% endif %}>作业（提前一天和提前一小时通知）</option>
+                                                <option value="3" name="3" {% if task.type != '考试' and task.type!='作业' %}selected="selected"{% endif %}>自定义</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        function gradeChange(){
+                                            var objS = document.getElementById("lx");
+                                            var val = objS.options[objS.selectedIndex].value;
+                                            if(val=="1"||val=="2")
+                                            {
+                                                document.getElementById("txsj").style.display="none";
+                                            }else{
+                                                document.getElementById("txsj").style.display="";
+                                            }
+                                        }
+                                    </script>
+                                    <div class="form-group" id="txsj">
+                                        <label class="col-md-3 control-label">提醒时间</label>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control datetimepicker" placeholder="first notice time" name="time1"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control datetimepicker" placeholder="second notice time" name="time2"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 control-label">描述文本</label>
+                                        <div class="col-md-8">
+                                          <textarea class="form-control" rows="5" name="dec">{% if task.dec != None %}value="{{ task.dec }}"{% endif %}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3"></label>
+                                        <div class="col-md-9">
+                                            <button type="submit" class="btn btn-fill btn-info">提交</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div> <!-- end card -->
+                    </div>
+                    </div>
+                </div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+    $().ready(function(){
+
+        // Init Sliders
+        //demo.initFormExtendedSliders();
+
+        // Init DatetimePicker
+        //demo.initFormExtendedDatetimepickers();
+         {% if task.type == '考试' or task.type=='作业' %}
+          document.getElementById("txsj").style.display="none";
+         {% endif %}
+        $('.datetimepicker').datetimepicker({
+            //locale: 'ch',
+            format: 'YYYY-MM-DD HH:mm',
+            icons: {
+                format:'YYYY-MM-DD HH:mm',
+                time: "fa fa-clock-o",
+                date: "fa fa-calendar",
+                up: "fa fa-chevron-up",
+                down: "fa fa-chevron-down",
+                previous: 'fa fa-chevron-left',
+                next: 'fa fa-chevron-right',
+                today: 'fa fa-screenshot',
+                clear: 'fa fa-trash',
+                close: 'fa fa-remove'
+            }
+         });
+    });
+</script>
+    {% if success is defined %}
+    {% if success==1 %}
+    <script type="text/javascript">
+    swal({  title: "添加成功！",
+            text: "",
+            type: "success",
+            showCancelButton: false,
+            confirmButtonText: "OK!",
+            cancelButtonText: "",
+            closeOnConfirm: false,
+            closeOnCancel: false
+            },function(isConfirm){
+                if (isConfirm){
+                    window.location.href='index';
+                }
+            });
+    </script>
+    {% endif %}
+    {% endif %}
+{% endblock %}
+
+</html>

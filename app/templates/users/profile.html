@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} profile {% endblock %}
+
+{% block content %}
+    <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="header">个人信息</div>
+                            <div class="content">
+                                <form method="POST" action="profile">
+                                {{ form.csrf_token }}
+                                    <div class="form-group">
+                                        <label>用户名</label>
+                                        <p class="form-control-static">{{ current_user.name }}</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        {% if current_user.isemail==0 %}
+                                            <p>{{ current_user.email }}
+                                            <button class="btn btn-wd btn-info" onclick="resend()" id="resendid" type="button">重新发送确认邮件</button></p>
+                                        {% else %}
+                                            <p>{{ current_user.email }}
+                                            <button class="btn btn-wd btn-info" onclick="resetemail()" id="change" type="button">更换邮箱</button></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-group">
+                                        <label>QQ</label>
+                                        <input type="text" placeholder="Enter QQ" class="form-control" value="{% if current_user.qq != None %}{{ current_user.qq }}{% endif %}" name="qq">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>旧密码</label>
+                                        <input type="password" placeholder="仅在更改密码时需要" class="form-control" name="old">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>新密码</label>
+                                        <input type="password" placeholder="仅在更改密码时需要" class="form-control" name="new">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>确认新密码</label>
+                                        <input type="password" placeholder="仅在更改密码时需要" class="form-control" name="newag">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="checkbox">
+                                            <input type="checkbox" data-toggle="checkbox" {% if current_user.isopen == 1 %}checked{% endif %} value="{% if current_user.isopen == 1 %}checked{% endif %}" name="open">
+                                            开启提醒
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-fill btn-info">提交</button>
+                                </form>
+                            </div>
+                        </div> <!-- end card -->
+
+                    </div>
+                </div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+var time=180;
+function resend() {
+    $.ajax({
+        url:'/resend',
+        success:function (data) {
+            if(data == 1) {
+              swal("确认邮件已发送", "请点击您邮箱中的链接激活邮箱!", "success");
+              btnset();
+          }else if(data == 0){
+              swal("请求过于频繁", "", "error");
+              btnset();
+          }else if(data == 2){
+              swal("邮箱已激活", "", "success");
+          }
+        }
+    })
+}
+
+function btnset() {
+    btn=document.getElementById("resendid")
+    btn.setAttribute("disabled",true);
+    if (time == 0){
+        time=180;
+        btn.innerText="重新发送确认邮件";
+        btn.removeAttribute("disabled")
+    }else{
+        time--;
+        btn.innerText="重新发送确认邮件("+time+"s)";
+        btn.setAttribute("disabled",true);
+        setTimeout(function () {
+            btnset()
+        },1000)
+    }
+}
+</script>
+<script type="text/javascript">
+
+function resetemail() {
+    swal({
+          title: '输入新邮箱',
+          html: '<p><input id="input-field" class="form-control">',
+          showCancelButton: true,
+          closeOnConfirm: false,
+          allowOutsideClick: false
+        },
+        function() {
+            $.ajax({
+                url:'/changeemail',
+                data:$('#input-field').val(),
+                success:function (data) {
+                    if(data == 1) {
+                      swal("确认邮件已发送", "请点击您新邮箱中的链接激活邮箱!", "success");
+                  }else if(data == 0){
+                      swal("请求过于频繁", "", "error");
+                      btnset();
+                  }else if(data == 2){
+                      swal("新邮箱已被注册", "", "error");
+                  }else if(data==3){
+                        swal("新旧邮箱一样", "", "error");
+                    }else if(data==4){
+                        swal("请检查邮箱", "", "error");
+                    }
+                }
+            })
+        })
+}
+
+
+</script>
+
+{% if success is defined %}
+{% if success==0 %}
+<script type="text/javascript">
+swal("没有更改被提交", "", "error")
+</script>
+{% endif %}
+{% if success==1 %}
+<script type="text/javascript">
+swal("信息更新成功!", "", "success")
+</script>
+{% endif %}
+{% if success==2 %}
+<script type="text/javascript">
+swal("原密码错误!", "", "error")
+</script>
+{% endif %}
+{% if success==3 %}
+<script type="text/javascript">
+swal("两次密码不一致!", "", "error")
+</script>
+{% endif %}
+{% if success==4 %}
+<script type="text/javascript">
+swal("qq不合法!", "", "error")
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}
+</html>

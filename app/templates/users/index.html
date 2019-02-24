@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} index {% endblock %}
+{% block index %}
+class="active"
+{% endblock %}
+{% block content %}<div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+
+                            <div class="toolbar">
+                                <!--        Here you can write extra buttons/actions for the toolbar              -->
+                                <div class="container pull-right">
+                                    <a href="edit"><button class="btn btn-info btn-round btn-fill btn-wd">新增项</button></a>
+                                </div>
+                            </div>
+
+                            <table id="bootstrap-table" class="table">
+                                <thead>
+                                <th data-field="state" data-checkbox="true"></th>
+                                <th data-field="id" class="text-center">ID</th>
+                                <th data-field="name" data-sortable="true">标题</th>
+                                <th data-field="ddltime" data-sortable="true">截止时间</th>
+                                <th data-field="lx" data-sortable="true">提醒类型</th>
+                                <th data-field="actions" class="td-actions text-right" data-events="operateEvents" data-formatter="operateFormatter">操作</th>
+                                </thead>
+                                <tbody>
+                                {% for datum in data %}
+                                    <tr>
+                                    <td></td>
+                                    <td>{{ datum.nid }}</td>
+                                    <td>{{ datum.nname }}</td>
+                                    <td>{{ datum.ddltime }}</td>
+                                    <td>{{ datum.type }}</td>
+                                    <td></td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div><!--  end card  -->
+
+                    </div> <!-- end col-md-12 -->
+                </div> <!-- end row --> {% endblock %}
+{% block script %}
+<script type="text/javascript">
+    var $table = $('#bootstrap-table');
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a rel="tooltip" title="View" class="btn btn-simple btn-info btn-icon table-action view" href="javascript:void(0)">',
+            '<i class="fa fa-image"></i>',
+            '</a>',
+            '<a rel="tooltip" title="Edit" class="btn btn-simple btn-warning btn-icon table-action edit" href="javascript:void(0)">',
+            '<i class="fa fa-edit"></i>',
+            '</a>',
+            '<a rel="tooltip" title="Remove" class="btn btn-simple btn-danger btn-icon table-action remove" href="javascript:void(0)">',
+            '<i class="fa fa-remove"></i>',
+            '</a>'
+        ].join('');
+    }
+
+    $().ready(function(){
+        window.operateEvents = {
+            'click .view': function (e, value, row, index) {
+                //console.log(row['id']);
+                var da = {id:row['id']}
+                 $.ajax({
+                      type: 'POST',
+                      url: "./gettaskinfo",
+                      data: da,
+                      success:function(data) {
+                         var a = JSON.parse(data);
+                          if(a['code']===2){
+                              var html;
+                              if(a['time2'] === undefined)
+                              {
+                                  var htmla = '开始时间：'+a['starttime']+' 结束时间：'+a['end']+'<br>第一次提醒时间：'+a['time1'];
+                              }else{
+                                  var htmla = '开始时间：'+a['starttime']+' 结束时间：'+a['end']+'<br>第一次提醒时间：'+a['time1']+"第二次提醒时间"+a['time2']
+                              }
+                              swal({
+                                        title: a['name'],
+                                        html: htmla,
+                                        showCancelButton: false,
+                                        closeOnConfirm: true
+                                    })
+                          }
+                    }});
+            },
+            'click .edit': function (e, value, row, index) {
+                window.location.href='edit?id='+row['id'];
+            },
+            'click .remove': function (e, value, row, index) {
+                var da = {id:row['id']}
+                swal({  title: "确定删除吗?",
+            	    text: "此操作无法撤回!",
+            	    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn btn-info btn-fill",
+                    confirmButtonText: "Yes",
+                    cancelButtonClass: "btn btn-danger btn-fill",
+                    closeOnConfirm: false,
+                },function(){
+                    $.ajax({
+                        type:'POST',
+                        url:"./delettask",
+                        data:da,
+                        success:function (data) {
+                            if(data==0) {
+                                swal("Deleted!", "已删除.", "success");
+                                $table.bootstrapTable('remove', {
+                                field: 'id',
+                                values: [row.id]
+                            });
+                            }else if(data==1){
+                                swal("未知错误", "", "warning");
+                            }else if(data==2){
+                                swal("非法操作", "", "warning");
+                            }
+
+                        }
+                    })
+                });
+
+            }
+        };
+
+        $table.bootstrapTable({
+            toolbar: ".toolbar",
+            //clickToSelect: true,
+            showRefresh: true,
+            search: true,
+            showToggle: true,
+            showColumns: true,
+            pagination: true,
+            searchAlign: 'left',
+            pageSize: 8,
+            clickToSelect: false,
+            pageList: [8,10,25,50,100],
+
+            formatShowingRows: function(pageFrom, pageTo, totalRows){
+                //do nothing here, we don't want to show the text "showing x of y from..."
+            },
+            formatRecordsPerPage: function(pageNumber){
+                return pageNumber + " rows visible";
+            },
+            icons: {
+                refresh: 'fa fa-refresh',
+                toggle: 'fa fa-th-list',
+                columns: 'fa fa-columns',
+                detailOpen: 'fa fa-plus-circle',
+                detailClose: 'fa fa-minus-circle'
+            }
+        });
+
+        //activate the tooltips after the data table is initialized
+        $('[rel="tooltip"]').tooltip();
+
+        $(window).resize(function () {
+            $table.bootstrapTable('resetView');
+        });
+
+
+    });
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        demo.initDashboardPageCharts();
+        demo.initVectorMap();
+
+        $.notify({
+            icon: 'fa fa-smile-o',
+            message: "<b>Welcome to ddl management system</b> - develop by <a href='http://www.ywxisky.cn'>ywx</a> ."
+        },{
+            type: 'warning',
+            timer: 4000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            }
+        });
+
+    });
+    {% if current_user.isemail==0 %}
+        $.notify({
+            icon: 'fa fa-warning',
+            message: "<b>您的邮箱还没有激活，请激活邮箱否则无法正常使用</b><a href='profile'>点此进入个人信息页可重发激活邮件</a> ."
+        },{
+            type: 'danger',
+            timer: 4000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            }
+        });
+    {% endif %}
+</script>
+{% endblock %}
+
+</html>

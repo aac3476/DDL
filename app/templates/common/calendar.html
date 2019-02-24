@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} calendar {% endblock %}
+{% block calendar %}
+class="active"
+{% endblock %}
+{% block content %}<div class="row">
+                    <div class="col-md-10 col-md-offset-1">
+
+                        <div class="card card-calendar">
+                            <div class="content">
+                                <div id="fullCalendar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>{% endblock %}
+{%  block script %}
+    <script>
+
+        $().ready(function(){
+            /*
+            var da;
+            var eventsa=new Array();
+             $.ajax({
+                        type:'GET',
+                        url:"./getalltask",
+                        async:true,
+                        success:function (data) {
+                            da = JSON.parse(data)
+                            for(var i=0;i<da.length;i++){
+                                eventsa[i]={};
+                                eventsa[i]['id']=da[i]['nid'];
+                                eventsa[i]['start']=new Date(Date.parse(da[i]['starttime'].replace(/-/g,"/")));
+                                eventsa[i]['end']=new Date(Date.parse(da[i]['ddltime'].replace(/-/g,"/")));
+                                eventsa[i]['title']=da[i]['nname'];
+                                eventsa[i]['allDay']=false;
+                                eventsa[i]['className']='event-blue'
+                            }
+                            console.log(eventsa)
+                        }
+                    });
+                    */
+            demo.initFullCalendar();
+        });
+    </script>
+{% endblock %}
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} group {% endblock %}
+{% block group %}
+class="active"
+{% endblock %}
+{% block gplist %}
+class="active"
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="content">
+
+            <div class="fresh-datatables">
+                <table id="datatables" class="table table-striped table-no-bordered table-hover" cellspacing="0" width="100%" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>群组名</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th>id</th>
+                        <th>群组名</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+                    {% for gp in gps %}
+                    <tr>
+                        <td>{{ gp.id }}</td>
+                        <td>{{ gp.name }}</td>
+                        {% if gp.isin %}
+                            <td class="text-right">
+                                <a class="btn btn-simple btn-danger btn-icon remove"><i class="fa fa-times"></i></a>
+                            </td>
+                        {% else %}
+                            <td class="text-right">
+                                <a class="btn btn-simple btn-info btn-icon like" ><i class="fa fa-hand-o-right"></i></a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- end content-->
+    </div><!--  end card  -->
+    </div>
+
+</div>
+{% endblock %}
+
+{% block script %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#datatables').DataTable({
+            "pagingType": "full_numbers",
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            responsive: true,
+            "bStateSave":true,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search",
+            }
+
+        });
+
+
+        var table = $('#datatables').DataTable();
+        //Like record
+        table.on( 'click', '.like', function () {
+            $tr = $(this).closest('tr');
+            var data = table.row($tr).data();
+            swal({  title: "确定加入" + data[1] +"吗？",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn btn-info btn-fill",
+                confirmButtonText: "Yes!",
+                cancelButtonClass: "btn btn-danger btn-fill",
+                closeOnConfirm: false,
+            },function(){
+                $.ajax({
+                    url:'/joingp',
+                    data:{'gid':data[0]},
+                    success:function (rt) {
+                        if(rt==1){
+                            data[2]='<a class="btn btn-simple btn-danger btn-icon remove"><i class="fa fa-times"></i></a>';
+                            var a =$('#datatables').dataTable();
+                            a.fnUpdate(data,table.row($tr).index());
+                            swal("加入成功!", "您已加入新群组，新群组提醒将会自动通知给您.", "success");
+                        }else if(rt==3){
+                            swal("群组不存在", "", "error")
+                        }else if(rt==2){
+                            data[2]='<a class="btn btn-simple btn-danger btn-icon remove"><i class="fa fa-times"></i></a>';
+                            var a =$('#datatables').dataTable();
+                            a.fnUpdate(data,table.row($tr).index());
+                            swal("已经加入过这个群组了!", "", "error");
+                        }
+
+                    }
+                })
+            });
+        });
+        table.on( 'click', '.remove', function () {
+            $tr = $(this).closest('tr');
+            var data = table.row($tr).data();
+            swal({  title: "确定退出" + data[1] +"吗？",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn btn-info btn-fill",
+                confirmButtonText: "Yes!",
+                cancelButtonClass: "btn btn-danger btn-fill",
+                closeOnConfirm: false,
+            },function(){
+                $.ajax({
+                    url:'/exitgp',
+                    data:{'gid':data[0]},
+                    success:function (rt) {
+                        if(rt==1){
+                            data[2]='<a class="btn btn-simple btn-info btn-icon like" ><i class="fa fa-hand-o-right"></i></a>'
+                            var a =$('#datatables').dataTable();
+                            a.fnUpdate(data,table.row($tr).index());
+                            swal("已退出!", "", "success");
+                        }else if(rt==3){
+                            swal("群组不存在", "", "error")
+                        }else if(rt==2){
+                            data[2]='<a class="btn btn-simple btn-info btn-icon like" ><i class="fa fa-hand-o-right"></i></a>'
+                            var a =$('#datatables').dataTable();
+                            a.fnUpdate(data,table.row($tr).index());
+                            swal("用户不在群组中!", "", "error");
+                        }else if(rt==4){
+                             swal("无法退出自建群组", "", "error")
+                        }
+
+                    }
+                })
+
+            });
+
+
+        });
+    });
+
+</script>
+{% endblock %}
+</html>

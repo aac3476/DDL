@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+{%  block title  %} group {% endblock %}
+{% block group %}
+class="active"
+{% endblock %}
+{% block gptask %}
+class="active"
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="content">
+                    <div class="fresh-datatables">
+                        <table id="datatables" class="table table-striped table-no-bordered table-hover" cellspacing="0" width="100%" style="width:100%">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>群组名</th>
+                                <th>标题</th>
+                                <th>截止时间</th>
+                                <th>提醒类型</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                    <tr>
+                                        <td>{{ task.gnid }}</td>
+                                        <td>{{ task.gpname }}</td>
+                                        <td>{{ task.gname }}</td>
+                                        <td>{{ task.ddltime }}</td>
+                                        <td>{{ task.type }}</td>
+                                        <td class="text-right">
+                                        {% if task.own %}
+                                            <a class="btn btn-simple btn-edit btn-icon btn-warning edit"><i class="fa fa-edit"></i></a>
+                                        {% endif %}
+                                        <a class="btn btn-simple btn-edit btn-icon btn-info view"><i class="fa fa-image"></i></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- end content-->
+            </div><!--  end card  -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#datatables').DataTable({
+            "pagingType": "full_numbers",
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            responsive: true,
+            "bStateSave":true,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search",
+            }
+
+        });
+
+
+        var table = $('#datatables').DataTable();
+        //Like record
+        table.on( 'click', '.edit', function () {
+            $tr = $(this).closest('tr');
+            var data = table.row($tr).data();
+            window.open();
+        });
+        table.on( 'click', '.view', function () {
+            $tr = $(this).closest('tr');
+            var data = table.row($tr).data();
+            var da = {id:data[0]};
+            $.ajax({
+                      type: 'POST',
+                      url: "./getgptaskinfo",
+                      data: da,
+                      success:function(data) {
+                         var a = JSON.parse(data);
+                          if(a['code']===2){
+                              var html;
+                              if(a['time2'] === undefined)
+                              {
+                                  var htmla = '开始时间：'+a['starttime']+' 结束时间：'+a['end']+'<br>第一次提醒时间：'+a['time1'];
+                              }else{
+                                  var htmla = '开始时间：'+a['starttime']+' 结束时间：'+a['end']+'<br>第一次提醒时间：'+a['time1']+"第二次提醒时间"+a['time2']
+                              }
+                              swal({
+                                        title: a['name'],
+                                        html: htmla,
+                                        showCancelButton: false,
+                                        closeOnConfirm: true
+                                    })
+                          }
+                    }});
+
+
+        });
+    });
+
+</script>
+{% endblock %}
+</html>
